@@ -13,6 +13,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -77,57 +78,25 @@ public class SeoulAirQualityApiCaller {
 
     // (성공) TODO: 자치구 목록 정보 변환 함수
     private List<AirQualityInfo.GuAirQualityInfo> convert(List<SeoulAirQualityApiDto.Row> rows) {
-        List<AirQualityInfo.GuAirQualityInfo> temp = new ArrayList<>();
-
-        // for-each 문 활용
-        // Row 의 값들을 GuAirQualityInfo의 형태로 변환시키기.
-        for(SeoulAirQualityApiDto.Row x : rows){
-            temp.add(AirQualityInfo.GuAirQualityInfo.builder()
-                    .gu(x.getSite())
-                    .pm10(x.getPm10())
-                    .pm25(x.getPm25())
-                    .o3(x.getO3())
-                    .no2(x.getNo2())
-                    .co(x.getCo())
-                    .so2(x.getSo2())
-                    .pm10Grade(AirQualityGradeUtil.getPm10Grade(Double.valueOf(x.getPm10())))
-                    .pm25Grade(AirQualityGradeUtil.getPm25Grade(Double.valueOf(x.getPm25())))
-                    .o3Grade(AirQualityGradeUtil.getO3Grade((Double.valueOf(x.getO3()))))
-                    .no2Grade(AirQualityGradeUtil.getNo2Grade(Double.valueOf(x.getNo2())))
-                    .coGrade(AirQualityGradeUtil.getCoGrade(Double.valueOf(x.getCo())))
-                    .so2Grade(AirQualityGradeUtil.getSo2Grade(Double.valueOf(x.getSo2())))
-                    .build());
-        }
-        return temp;
-
-//        for(int i=0; i<rows.size(); i++){
-//            temp.add(AirQualityInfo.GuAirQualityInfo.builder()
-//                    .gu(rows.get(i).getSite())
-//                    .pm10(rows.get(i).getPm10())
-//                    .pm25(rows.get(i).getPm25())
-//                    .o3(rows.get(i).getO3())
-//                    .no2(rows.get(i).getNo2())
-//                    .co(rows.get(i).getCo())
-//                    .so2(rows.get(i).getSo2())
-//                    .pm10Grade(AirQualityGradeUtil.getPm10Grade(Double.valueOf(rows.get(i).getPm10())))
-//                    .pm25Grade(AirQualityGradeUtil.getPm25Grade(Double.valueOf(rows.get(i).getPm25())))
-//                    .o3Grade(AirQualityGradeUtil.getO3Grade((Double.valueOf(rows.get(i).getO3()))))
-//                    .no2Grade(AirQualityGradeUtil.getNo2Grade(Double.valueOf(rows.get(i).getNo2())))
-//                    .coGrade(AirQualityGradeUtil.getCoGrade(Double.valueOf(rows.get(i).getCo())))
-//                    .so2Grade(AirQualityGradeUtil.getSo2Grade(Double.valueOf(rows.get(i).getSo2())))
-//                    .build());
-//        }
-
+        return rows.stream()    //stream - map을 사용하여 객체 형변환
+                .map(row -> new AirQualityInfo.GuAirQualityInfo(
+                        row.getSite(),
+                        row.getPm10(),
+                        row.getPm25(),
+                        row.getO3(),
+                        row.getNo2(),
+                        row.getCo(),
+                        row.getSo2()
+                        )
+                )
+                .collect(Collectors.toList()); // 마무리 연산 collect : Collectors.toList()를 인자에 전달하면 List 객체로 리턴
     }
 
     // (성공)TODO: 자치구 목록으로 pm10(미세먼지) 평균값을 구하는 함수
     private Double averagePm10(List<SeoulAirQualityApiDto.Row> rows) {
-        double avgPm10 = 0.0;
-        for(int i=0; i<rows.size(); i++){
-            avgPm10 += rows.get(i).getPm10();
-        }
-        System.out.println(rows.size());
-        avgPm10 /= rows.size();
-        return avgPm10;
+        return rows.stream()
+                .mapToDouble(row -> row.getPm10())
+                .average()
+                .getAsDouble(); //마무리 연산 getAsDouble : Double to OptionalDouble
     }
 }
