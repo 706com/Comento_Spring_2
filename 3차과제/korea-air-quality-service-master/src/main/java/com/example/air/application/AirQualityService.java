@@ -17,10 +17,6 @@ public class AirQualityService {
     private final BusanAirQualityApiCaller busanAirQualityApiCaller;
 
     public AirQualityInfo getAirQualityInfo(Sido sidoCode, String gu) {
-//        AirQualityInfo airQualityInfo = seoulAirQualityApiCaller.getAirQuality();
-//        System.out.println("seoul-default");
-//
-//        return airQualityInfo;
 
         if (sidoCode == Sido.seoul) {
             //타입추론 : var =  변수의 타입을 명시적으로 적어주지 않고도, 컴파일러가 알아서 이 변수의 타입을 대입된 리터럴로 추론하는 것
@@ -31,8 +27,18 @@ public class AirQualityService {
             return airQualityInfo;
         }
 
+        if(sidoCode == Sido.busan){
+            var airQualityInfo = busanAirQualityApiCaller.getAirQuality();
+
+            if(gu != null){
+                return airQualityInfo.searchByGu(gu);
+            }
+            return airQualityInfo;
+        }
+
         throw new RuntimeException(sidoCode + "대기질 정보는 아직 준비중입니다.");
     }
+
 }
 
 

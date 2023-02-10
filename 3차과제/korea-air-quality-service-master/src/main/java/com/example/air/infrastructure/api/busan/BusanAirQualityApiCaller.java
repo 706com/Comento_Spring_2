@@ -14,6 +14,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -29,17 +30,14 @@ public class BusanAirQualityApiCaller {
                 .addConverterFactory(JacksonConverterFactory.create(objectMapper))
                 .build();
 
-//        System.out.println("retrofit : "+ retrofit.baseUrl()+" "+retrofit.callAdapterFactories());
         this.busanAirQualityApi = retrofit.create(BusanAirQualityApi.class);
     }
-    //BusanAirQualityApiDto.GetAirQualityResponse
-    //4단계 : seoul 과 마찬가지로 convert 함수로 넘겨주도록 바꿨는데...
-    // Q) 왜 반환형식을 서울과 다르게 했을까?
-    //  AirQualityInfo로 반환할 시, 오류가 뜬다.. BusanDto.GetResponse 로 그대로 넘겨주는 이유는?
-    // 그리고 그것을 사용하기 위해서 가공시켜야하는 함수를 짜야하는건가?
 
-    //출력으로 결과를 확인해봤을때, response 에 값이 아예 안담긴다..(불러오질 못한다.) 왜지?
-    public BusanAirQualityApiDto.GetAirQualityResponse getAirQuality() {
+    // *단순 출력으로 결과를 확인해봤을때, response 에 값이 아예 안담긴다..(불러오질 못한다.) 왜지?
+    // -> busanDto 에서 공공api 데이터형식과 맞춰야함
+
+    //public BusanAirQualityApiDto.GetAirQualityResponse getAirQuality()
+    public AirQualityInfo getAirQuality() {
         try {
             var call = busanAirQualityApi.getAirQuality();
             var response = call.execute().body();
@@ -48,13 +46,13 @@ public class BusanAirQualityApiCaller {
                 throw new RuntimeException("[busan] getAirQuality 응답값이 존재하지 않습니다.");
             }
 
-            for(int i=0; i<response.getResponse().getBody().getItems().getItems().size(); i++) {
-                System.out.println(response.getResponse().getBody().getItems().getItems().get(i).getSite());
+            for(int i=0; i<response.getResponse().getBody().getItems().getItem().size(); i++) {
+                System.out.println(response.getResponse().getBody().getItems().getItem().get(i).getSite());
             }
 
             if (response.getResponse().isSuccess()) {
                 log.info(response.toString());
-                return response;
+                return convert(response);
             }
 
             throw new RuntimeException("[busan] getAirQuality 응답이 올바르지 않습니다. header=" + response.getResponse().getHeader());
@@ -64,10 +62,49 @@ public class BusanAirQualityApiCaller {
             throw new RuntimeException("[busan] getAirQuality API error 발생! errorMessage=" + e.getMessage());
         }
     }
+
+    //1단계 : convert 함수 짜기
+    // 부산시 공공 API에서 조회한 정보를 AirQualityInfo로 변환해주는 함수
+    public AirQualityInfo convert(BusanAirQualityApiDto.GetAirQualityResponse response){
+        List<BusanAirQualityApiDto.Item> items = response.getResponse().getBody().getItems().getItem();
+        Double sidoPm10Avg = averagePm10(items);
+        String sidoPm10AvgGrade = AirQualityGradeUtil.getPm10Grade(sidoPm10Avg);
+        List<AirQualityInfo.GuAirQualityInfo> guList = convert(items);
+
+
+        return AirQualityInfo.builder()
+                .sido("부산시")
+                .sidoPm10Avg(sidoPm10Avg)
+                .sidoPm10AvgGrade(sidoPm10AvgGrade)
+                .guList(guList)
+                .build();
+    }
+
+    //2단계 : busanDto 의 item들을 GuAirQualityInfo 형식으로 변환
+    public List<AirQualityInfo.GuAirQualityInfo> convert(List<BusanAirQualityApiDto.Item> items){
+        return items.stream()
+                .map(item -> new AirQualityInfo.GuAirQualityInfo(
+                        item.getSite(),
+                        Integer.valueOf(item.getPm10()),
+                        Integer.valueOf(item.getPm25()),
+                        Double.valueOf(item.getO3()),
+                        Double.valueOf(item.getNo2()),
+                        Double.valueOf(item.getCo()),
+                        Double.valueOf(item.getSo2())
+                ))
+                .collect(Collectors.toList());
+    }
+
+    //3단계 : 평균 pm10 구하기
+    public Double averagePm10(List<BusanAirQualityApiDto.Item> items){
+        return items.stream()
+                .mapToDouble(item -> Integer.valueOf(item.getPm10()))
+                .average()
+                .getAsDouble();
+    }
 }
 
-//    //1단계 : convert 함수 짜기
-//    // 부산시 공공 API에서 조회한 정보를 AirQualityInfo로 변환해주는 함수
+
 //    private AirQualityInfo convert(BusanAirQualityApiDto.GetAirQualityResponse response) {
 //        List<BusanAirQualityApiDto.Item> items = response.getResponse().getItems();
 //        Double BusansidoPm10Avg = averagePm10(items);

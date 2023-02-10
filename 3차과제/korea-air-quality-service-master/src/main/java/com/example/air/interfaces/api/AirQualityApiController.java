@@ -22,7 +22,7 @@ public class AirQualityApiController {
 
     //GetMapping 은 메소드에만 적용.
     //@PathVariable = url 변수명
-    //@RequestParam = url 파라미터 (디폴트 선택 가능)
+    //@RequestParam = url 파라미터 ?gu="중구" (디폴트 선택 가능)
     @GetMapping("/{sidoCode}")
     public AirQualityInfo getAirQualityInfo(@PathVariable("sidoCode") Sido sidoCode,
                                             @RequestParam(value = "gu", required = false) String gu) {

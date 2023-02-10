@@ -29,9 +29,7 @@ public class AirQualityInfo {
                                                             // Collections.singletonList()를 사용해라.
                                                             // == Arrays.asList와 같은말 ??
         return this;
-
     }
-
     private GuAirQualityInfo searchGuAirQualityInfo(String gu) {
         return guList.stream()
                 .filter(guAirQualityInfo -> guAirQualityInfo.getGu().equals(gu))
@@ -58,6 +56,7 @@ public class AirQualityInfo {
         private String coGrade;
         private String so2Grade;
 
+        //생성자를 만듬으로서, 다양한 지역에서도 형변환에 구애받지않고 간단하게 사용가능
         public GuAirQualityInfo(String gu, Integer pm10, Integer pm25, Double o3, Double no2, Double co, Double so2) {
             this.gu = gu;
             this.pm10 = pm10;

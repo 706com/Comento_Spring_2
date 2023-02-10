@@ -57,7 +57,7 @@ public class BusanAirQualityApiDto {
     @ToString
     public static class Items{
         @JsonProperty("item")
-        private List<Item> items;
+        private List<Item> item;
     }
 
     @Getter
