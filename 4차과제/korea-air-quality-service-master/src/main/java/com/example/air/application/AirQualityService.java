@@ -12,6 +12,7 @@ import com.example.air.infrastructure.api.busan.BusanAirQualityApiDto;
 import com.example.air.infrastructure.api.seoul.SeoulAirQualityApiCaller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.List;
 @Slf4j      //로그남기기
 @Service
 @RequiredArgsConstructor
+@EnableCaching
 public class AirQualityService {
     private final KoreaAirQualityServiceFactory koreaAirQualityServiceFactory;
 
@@ -27,6 +29,7 @@ public class AirQualityService {
 //    private final BusanAirQualityApiCaller busanAirQualityApiCaller;
 
     public AirQualityInfo getAirQualityInfo(Sido sidoCode, String gu) {
+
         KoreaAirQualityService service = koreaAirQualityServiceFactory.getService(sidoCode);
 
         var airQualityInfo = service.getAirQualityInfo();
