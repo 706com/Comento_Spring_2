@@ -6,9 +6,11 @@ import com.example.air.application.Sido;
 import com.example.air.infrastructure.api.busan.BusanAirQualityApiDto;
 import com.example.air.infrastructure.api.seoul.SeoulAirQualityApiCaller;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 //RequestMapping 은 클래스 레벨에서 사용. (클래스와 메서드 수준에서 모두 사용할 수 있다.)
@@ -25,7 +27,9 @@ public class AirQualityApiController {
     @GetMapping("/{sidoCode}")
     public AirQualityInfo getAirQualityInfo(@PathVariable("sidoCode") Sido sidoCode,
                                             @RequestParam(value = "gu", required = false) String gu) {
-        return airQualityService.getAirQualityInfo(sidoCode, gu);
+//        return airQualityService.getAirQualityInfo(sidoCode, gu);
+
+        return airQualityService.getCacheAirQualityInfo(sidoCode, gu);
     }
 }
 

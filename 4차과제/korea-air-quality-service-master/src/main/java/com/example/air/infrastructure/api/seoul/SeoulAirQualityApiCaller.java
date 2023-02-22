@@ -13,6 +13,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,17 +69,23 @@ public class SeoulAirQualityApiCaller implements KoreaAirQualityService {
         List<SeoulAirQualityApiDto.Row> rows = response.getResponse().getRows();
         Double sidoPm10Avg = averagePm10(rows);
         String sidoPm10AvgGrade = AirQualityGradeUtil.getPm10Grade(sidoPm10Avg);
+        Integer time = getMeasureTimeHour(rows.get(0).getMeasurementTime());
         List<AirQualityInfo.GuAirQualityInfo> guList = convert(rows);
 
         for(int i=0; i<rows.size(); i++){
             System.out.println(rows.get(i));
         }
 
+        System.out.println(rows.get(0).getMeasurementTime());
+
+
+
         return AirQualityInfo.builder()
                 .sido("서울시")
                 .sidoPm10Avg(sidoPm10Avg)
                 .sidoPm10AvgGrade(sidoPm10AvgGrade)
                 .guList(guList)
+                .currentTime(time)
                 .build();
     }
 
@@ -104,5 +111,10 @@ public class SeoulAirQualityApiCaller implements KoreaAirQualityService {
                 .mapToDouble(row -> row.getPm10())
                 .average()
                 .getAsDouble(); //마무리 연산 getAsDouble : Double to OptionalDouble
+    }
+
+    private Integer getMeasureTimeHour(String measureTime){
+        Integer hour = Integer.valueOf(measureTime.substring(8,10));
+        return hour;
     }
 }

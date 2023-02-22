@@ -15,6 +15,7 @@ public class AirQualityInfo {
     private String sido;
     private Double sidoPm10Avg;
     private String sidoPm10AvgGrade;
+    private Integer currentTime;
     private List<GuAirQualityInfo> guList;
 
     public AirQualityInfo searchByGu(String gu) {
@@ -24,11 +25,18 @@ public class AirQualityInfo {
 
         var searchGuInfo = searchGuAirQualityInfo(gu);
         //guList = Arrays.asList(searchGuInfo);
-        guList = Collections.singletonList(searchGuInfo);   //메모리 절약을 위해서 요소가 없거나(empty) 하나인 경우에는
+        var searchGu = Collections.singletonList(searchGuInfo);   //메모리 절약을 위해서 요소가 없거나(empty) 하나인 경우에는
                                                             // Collections.emptyList() 또는
                                                             // Collections.singletonList()를 사용해라.
                                                             // == Arrays.asList와 같은말 ??
-        return this;
+//        return this;
+        return AirQualityInfo.builder()
+                .sido(this.sido)
+                .sidoPm10Avg(this.sidoPm10Avg)
+                .sidoPm10AvgGrade(this.sidoPm10AvgGrade)
+                .currentTime(this.currentTime)
+                .guList(searchGu)
+                .build();
     }
     private GuAirQualityInfo searchGuAirQualityInfo(String gu) {
         return guList.stream()

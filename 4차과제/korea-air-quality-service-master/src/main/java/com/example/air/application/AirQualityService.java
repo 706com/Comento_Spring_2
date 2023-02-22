@@ -6,6 +6,8 @@ package com.example.air.application;
 // 파라미터와 응답까지 내부 컨버터를 통해 AirQualityInfo 로 맞춰두었는데요.
 // 이런 공통 동작은 인터페이스로 추상화하여 묶을 수 있습니다.
 
+import com.example.air.application.Cache.CacheKoreaAirQuality;
+//import com.example.air.application.Cache.CacheUpdate;
 import com.example.air.application.util.AirQualityGradeUtil;
 import com.example.air.infrastructure.api.busan.BusanAirQualityApiCaller;
 import com.example.air.infrastructure.api.busan.BusanAirQualityApiDto;
@@ -15,24 +17,67 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j      //로그남기기
 @Service
 @RequiredArgsConstructor
-@EnableCaching
+//@EnableCaching
 public class AirQualityService {
     private final KoreaAirQualityServiceFactory koreaAirQualityServiceFactory;
+    private final CacheKoreaAirQuality cacheKoreaAirQuality;
+//    private final CacheUpdate cacheUpdate;
 
 //    private final SeoulAirQualityApiCaller seoulAirQualityApiCaller;
 //    private final BusanAirQualityApiCaller busanAirQualityApiCaller;
 
+    public AirQualityInfo getCacheAirQualityInfo(Sido sidoCode, String gu) {
+
+//        KoreaAirQualityService service = cacheKoreaAirQuality.getCache(sidoCode);
+
+        var airQualityInfo = cacheKoreaAirQuality.getCache(sidoCode);
+
+        Integer apiTime = airQualityInfo.getCurrentTime();
+
+
+        if(!compareTime(apiTime)){
+            //다르면 updateCache
+            cacheKoreaAirQuality.updateCache(sidoCode);
+            System.out.println("Not same : New Api");
+        }
+
+        if(gu != null){
+            return airQualityInfo.searchByGu(gu);
+        }
+        return airQualityInfo;
+
+    }
+
+    public boolean compareTime(Integer apiTime){
+        SimpleDateFormat sdf = new SimpleDateFormat("HH");
+        Integer currentTime = Integer.valueOf(sdf.format(System.currentTimeMillis())) ;
+
+        System.out.println("currentTime: "+ currentTime);
+        System.out.println("apiTime: "+apiTime);
+
+        if(currentTime.equals(apiTime)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+
+    //캐시 사용 전
     public AirQualityInfo getAirQualityInfo(Sido sidoCode, String gu) {
 
         KoreaAirQualityService service = koreaAirQualityServiceFactory.getService(sidoCode);
 
         var airQualityInfo = service.getAirQualityInfo();
+
         if(gu != null){
             return airQualityInfo.searchByGu(gu);
         }

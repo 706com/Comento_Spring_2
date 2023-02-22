@@ -54,7 +54,7 @@ public class SeoulAirQualityApiDto {
         private String area;
         @JsonProperty("MSRSTE_NM")
         private String site;
-        @JsonProperty("MSRDT_DE")
+        @JsonProperty("MSRDT")
         private String measurementTime;
         @JsonProperty("SO2")
         private Double so2;

@@ -76,13 +76,17 @@ public class BusanAirQualityApiCaller implements KoreaAirQualityService {
         List<BusanAirQualityApiDto.Item> items = response.getResponse().getBody().getItems().getItem();
         Double sidoPm10Avg = averagePm10(items);
         String sidoPm10AvgGrade = AirQualityGradeUtil.getPm10Grade(sidoPm10Avg);
+        Integer time = getMeasureTimeHour(items.get(0).getMeasurementTime());
         List<AirQualityInfo.GuAirQualityInfo> guList = convert(items);
+
+        System.out.println(items.get(0).getMeasurementTime());
 
 
         return AirQualityInfo.builder()
-                .sido("부산시")
+                .sido(Sido.busan.getDescription())
                 .sidoPm10Avg(sidoPm10Avg)
                 .sidoPm10AvgGrade(sidoPm10AvgGrade)
+                .currentTime(time)
                 .guList(guList)
                 .build();
     }
@@ -108,6 +112,11 @@ public class BusanAirQualityApiCaller implements KoreaAirQualityService {
                 .mapToDouble(item -> Integer.valueOf(item.getPm10()))
                 .average()
                 .getAsDouble();
+    }
+
+    public Integer getMeasureTimeHour(String measureTime){
+        Integer hour = Integer.valueOf(measureTime.substring(8,10));
+        return hour;
     }
 }
 
